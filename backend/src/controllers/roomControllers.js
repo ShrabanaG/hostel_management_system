@@ -9,13 +9,22 @@ export const getAllRooms = async (req, res) => {
   }
 };
 
+export const createRoom = async (req, res) => {
+  try {
+    const room = await Room.create(req.body);
+    res.status(201).json(room);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 export const allocateRoom = async (req, res) => {
   const { roomNumber, residentId } = req.body;
   try {
-    const room = await Room.findById(roomNumber);
+    const room = await Room.findOne({ roomNumber });
     if (!room) return res.status(404).json({ message: "Room not found" });
 
-    room.resident = residentId;
+    room.resident.push(residentId);
     room.availability = true;
     await room.save();
     res.status(200).json({ message: "Room allocated successfully", room });

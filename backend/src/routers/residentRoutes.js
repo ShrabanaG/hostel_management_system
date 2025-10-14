@@ -14,7 +14,7 @@ const router = express.Router();
 router.use(authMiddleware);
 
 router.get("/", roleMiddleware(["admin"]), getAllResidents);
-router.post("/", roleMiddleware(["admin"]), createResident);
+router.post("/create_resident", roleMiddleware(["admin"]), createResident);
 router.put("/:id", roleMiddleware(["admin"]), updateResident);
 router.delete("/:id", roleMiddleware(["admin"]), deleteResident);
 
