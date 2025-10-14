@@ -11,7 +11,7 @@ const roomSchema = new mongoose.Schema({
     enum: ["Single", "Double", "Triple"],
     required: true,
   },
-  avalibility: {
+  availability: {
     type: Boolean,
     required: true,
     default: false,
@@ -20,7 +20,7 @@ const roomSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
-  residents: [
+  resident: [
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
