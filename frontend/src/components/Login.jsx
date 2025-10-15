@@ -1,5 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -25,6 +26,7 @@ const Login = () => {
   const [showRegisterPassword, setShowRegisterPassword] = useState(false);
   const [showRegisterConfirmPassword, setShowRegisterConfirmPassword] =
     useState(false);
+  const navigate = useNavigate();
 
   const base_url = import.meta.env.VITE_BASE_URL;
 
@@ -32,6 +34,14 @@ const Login = () => {
     try {
       const res = await axios.post(`${base_url}/api/auth/login`, existingUser);
       toast.success(`Welcome ${res.data.user.name}`);
+      localStorage.setItem("user", JSON.stringify(res.data.user));
+      localStorage.setItem("token", res.data.token);
+
+      if (res.data.user.role === "admin") {
+        navigate("/admin/dashboard");
+      } else {
+        navigate("/resident");
+      }
       console.log(res.data);
     } catch (error) {
       toast.error(error.response?.data?.message || "Login failed");

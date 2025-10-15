@@ -2,7 +2,7 @@ import Room from "../models/roomModel.js";
 
 export const getAllRooms = async (req, res) => {
   try {
-    const rooms = await Room.find().populate("residents", "name email");
+    const rooms = await Room.find().populate("resident", "name email");
     res.status(200).json(rooms);
   } catch (error) {
     res.status(500).json({ message: error.message });

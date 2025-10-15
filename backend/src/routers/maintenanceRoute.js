@@ -9,7 +9,11 @@ import { roleMiddleware } from "../middleware/roleMiddleware.js";
 const router = express.Router();
 router.use(authMiddleware);
 
-router.post("/", roleMiddleware(["resident"]), createMaintenanceReport);
+router.post(
+  "/create_maintenance",
+  roleMiddleware(["resident"]),
+  createMaintenanceReport
+);
 router.get("/", roleMiddleware(["admin"]), getAllReport);
 
 export default router;
