@@ -31,17 +31,24 @@ const Login = () => {
   const base_url = import.meta.env.VITE_BASE_URL;
 
   const handleLogIn = async () => {
+    if (!existingUser.email || !existingUser.password || !existingUser.role) {
+      toast.error("Please fill all fields");
+      return;
+    }
     try {
       const res = await axios.post(`${base_url}/api/auth/login`, existingUser);
-      toast.success(`Welcome ${res.data.user.name}`);
-      localStorage.setItem("user", JSON.stringify(res.data.user));
-      localStorage.setItem("token", res.data.token);
+      if (res.status === 200) {
+        toast.success(`Welcome ${res.data.user.name}`);
+        localStorage.setItem("user", JSON.stringify(res.data.user));
+        localStorage.setItem("token", res.data.token);
 
-      if (res.data.user.role === "admin") {
-        navigate("/admin/dashboard");
-      } else {
-        navigate("/resident");
+        if (res.data.user.role === "admin") {
+          navigate("/admin/dashboard");
+        } else {
+          navigate("/resident");
+        }
       }
+
       console.log(res.data);
     } catch (error) {
       toast.error(error.response?.data?.message || "Login failed");
