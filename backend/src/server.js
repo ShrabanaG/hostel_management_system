@@ -1,5 +1,6 @@
 import express from "express";
 import dotenv from "dotenv";
+import cors from "cors";
 import connectToDB from "./config/db.js";
 import roomRoutes from "./routers/roomRoutes.js";
 import maintenanceRoutes from "./routers/maintenanceRoute.js";
@@ -13,6 +14,12 @@ const app = express();
 connectToDB();
 
 app.use(express.json());
+
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+  })
+);
 
 app.use("/api/auth", authRoutes);
 

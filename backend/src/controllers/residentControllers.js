@@ -3,7 +3,9 @@ import Resident from "../models/residentModel.js";
 //get all residents
 export const getAllResidents = async (req, res) => {
   try {
-    const allResidents = await Resident.find();
+    const allResidents = await Resident.find()
+      .populate("user", "name email")
+      .populate("desireRoom", "roomNumber roomType");
     res.status(200).json(allResidents);
   } catch (error) {
     res.status(500).json({ message: "No resident is found" });
