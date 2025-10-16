@@ -14,7 +14,7 @@ router.use(authMiddleware);
 
 router.get("/", getAllRooms);
 router.post("/add_room", roleMiddleware(["admin"]), createRoom);
-router.post("/allocate", roleMiddleware(["admin"]), allocateRoom);
+router.post("/allocate", allocateRoom);
 router.post("/free/:id", roleMiddleware(["admin"]), freeEachRoom);
 
 export default router;

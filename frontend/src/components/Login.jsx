@@ -40,12 +40,13 @@ const Login = () => {
       if (res.status === 200) {
         toast.success(`Welcome ${res.data.user.name}`);
         localStorage.setItem("user", JSON.stringify(res.data.user));
-        localStorage.setItem("token", res.data.token);
 
         if (res.data.user.role === "admin") {
+          localStorage.setItem("token", res.data.token);
           navigate("/admin/dashboard");
-        } else {
-          navigate("/resident");
+        } else if (res.data.user.role === "resident") {
+          localStorage.setItem("resident_token", res.data.token);
+          navigate(`/resident/${res.data.user.id}`);
         }
       }
 

@@ -30,8 +30,16 @@ export const getEachResident = async (req, res) => {
 
 export const createResident = async (req, res) => {
   try {
-    const resident = await Resident.create(req.body);
-    res.status(201).json(resident);
+    const { userId, desireRoom, checkInDate, checkOutDate } = req.body;
+
+    const resident = await Resident.create({
+      user: userId,
+      desireRoom,
+      checkInDate,
+      checkOutDate,
+    });
+
+    res.status(201).json({ message: "Resident created", resident });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

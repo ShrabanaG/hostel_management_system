@@ -1,4 +1,5 @@
 import Room from "../models/roomModel.js";
+import Resident from "../models/residentModel.js";
 
 export const getAllRooms = async (req, res) => {
   try {
@@ -19,14 +20,24 @@ export const createRoom = async (req, res) => {
 };
 
 export const allocateRoom = async (req, res) => {
-  const { roomNumber, residentId } = req.body;
+  const { userId, desireRoom, checkInDate, checkOutDate } = req.body;
   try {
-    const room = await Room.findOne({ roomNumber });
+    const room = await Room.findById(desireRoom);
     if (!room) return res.status(404).json({ message: "Room not found" });
 
-    room.resident.push(residentId);
-    room.availability = true;
+    room.resident.push(userId); // userId = resident user
+    room.availability = false;
     await room.save();
+
+    // optional: create Resident entry
+    await Resident.create({
+      user: userId,
+      desireRoom,
+      checkInDate,
+      checkOutDate,
+      paymentStatus: "Pending",
+    });
+
     res.status(200).json({ message: "Room allocated successfully", room });
   } catch (error) {
     res.status(500).json({ message: error.message });
