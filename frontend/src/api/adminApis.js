@@ -1,73 +1,24 @@
-import axios from "axios";
-
-const base_url = import.meta.env.VITE_BASE_URL;
-const token = localStorage.getItem("token");
+import api from "./axiosInstance";
+import apiPost from "./axiosIntancePost";
 
 export const getAllRooms = async () => {
-  try {
-    if (!token) {
-      console.error("No token found in localStorage");
-      return;
-    }
-
-    const res = await axios.get(`${base_url}/api/rooms/`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (res.status === 200) {
-      return res.data;
-    }
-  } catch (error) {
-    console.log("Error message:", error.message);
-  }
+  const res = await api.get("/api/admin/rooms");
+  return res.data;
 };
 
 export const getAllResidents = async () => {
-  try {
-    if (!token) {
-      console.error("No token found in localStorage");
-      return;
-    }
-
-    const res = await axios.get(`${base_url}/api/residents`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (res.status === 200) {
-      return res.data;
-    }
-  } catch (error) {
-    console.log("Error message:", error.message);
-  }
+  const res = await api.get("/api/admin/residents");
+  return res.data;
 };
 
 export const getAllMaintenanceReport = async () => {
-  try {
-    const res = await axios.get(`${base_url}/api/maintenance`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    if (res.status === 200) {
-      return res.data;
-    }
-  } catch (error) {
-    console.log("Error fetching data", error);
-  }
+  const res = await api.get("/api/admin/maintenance");
+  return res.data;
 };
 
 export const createNewRoom = async (data) => {
   try {
-    const res = await axios.post(`${base_url}/api/rooms/add_room`, data, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    });
+    const res = await apiPost.post("/api/rooms/add_room", data);
     return res.status;
   } catch (error) {
     console.log(error.message);
