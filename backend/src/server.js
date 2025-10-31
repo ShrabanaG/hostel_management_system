@@ -17,10 +17,7 @@ app.use(express.json());
 
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173",
-      "https://hostel-management-system-lemon.vercel.app",
-    ],
+    origin: ["http://localhost:5173", process.env.CLIENT_URL],
     credentials: true,
   })
 );
