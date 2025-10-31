@@ -2,17 +2,17 @@ import api from "./axiosInstance";
 import apiPost from "./axiosIntancePost";
 
 export const getAllRooms = async () => {
-  const res = await api.get("/api/admin/rooms");
+  const res = await api.get("/api/rooms");
   return res.data;
 };
 
 export const getAllResidents = async () => {
-  const res = await api.get("/api/admin/residents");
+  const res = await api.get("/api/residents");
   return res.data;
 };
 
 export const getAllMaintenanceReport = async () => {
-  const res = await api.get("/api/admin/maintenance");
+  const res = await api.get("/api/maintenance");
   return res.data;
 };
 
