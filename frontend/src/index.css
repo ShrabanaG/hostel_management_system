@@ -16,6 +16,7 @@ body {
   justify-content: center;
   position: relative;
 }
+
 .loader::after,
 .loader::before {
   content: "";
@@ -28,6 +29,7 @@ body {
   box-sizing: border-box;
   animation: rotation 2s ease-in-out infinite;
 }
+
 .loader::after {
   border-color: #ff3d00;
   animation-delay: 1s;
