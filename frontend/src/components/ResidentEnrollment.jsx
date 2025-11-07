@@ -1,11 +1,15 @@
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { getAllRooms, allocateRoom } from "../api/residentsApis";
+import {
+  getAllRooms,
+  allocateRoom,
+  createMaintenanceReport,
+} from "../api/residentsApis";
 import { ToastContainer, toast } from "react-toastify";
 
 import "react-toastify/dist/ReactToastify.css";
 
-import { FaBed, FaCalendarAlt, FaDoorOpen } from "react-icons/fa";
+import { FaBed, FaCalendarAlt, FaDoorOpen, FaTools } from "react-icons/fa";
 import { PiBuildingOfficeFill } from "react-icons/pi";
 import { CgLogOut } from "react-icons/cg";
 
@@ -18,6 +22,11 @@ const ResidentEnrollment = () => {
     desireRoom: "",
     checkInDate: "",
     checkOutDate: "",
+  });
+
+  const [maintenance, setMaintenance] = useState({
+    room: "",
+    description: "",
   });
 
   const today = new Date().toISOString().split("T")[0];
@@ -195,7 +204,7 @@ const ResidentEnrollment = () => {
           <div className="loader"></div>
         </div>
       ) : (
-        <main className="grid grid-cols-1 lg:grid-cols-2 mx-auto px-6 py-8 gap-6">
+        <main className="grid grid-cols-1 lg:grid-cols-3 mx-auto px-6 py-8 gap-6">
           <div className="bg-white rounded-xl shadow-md p-6">
             <div className="flex flex-col justify-center items-center mb-6 gap-4">
               <h2 className="text-2xl font-bold text-indigo-600">
@@ -242,6 +251,77 @@ const ResidentEnrollment = () => {
                 <div className="flex items-center justify-center space-x-2">
                   <FaBed />
                   <span>Book Room</span>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-md p-6">
+            <div className="flex flex-col justify-center items-center mb-6 gap-4">
+              <h2 className="text-2xl font-bold text-indigo-600 flex items-center gap-2">
+                <FaTools /> Report Maintenance Issue
+              </h2>
+
+              <div className="w-full">
+                <label className="block text-sm font-bold text-gray-700 mb-2">
+                  Select Room*
+                </label>
+                <div className="relative">
+                  <FaDoorOpen className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <select
+                    value={maintenance.room}
+                    onChange={(e) =>
+                      setMaintenance({ ...maintenance, room: e.target.value })
+                    }
+                    className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition"
+                  >
+                    <option value="">Select a Room</option>
+                    {allRooms.map((room) => (
+                      <option key={room._id} value={room._id}>
+                        {room.roomNumber}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="w-full">
+                <label className="block text-sm font-bold text-gray-700 mb-2">
+                  Description*
+                </label>
+                <textarea
+                  placeholder="Describe the issue (e.g., water leakage, broken light)..."
+                  value={maintenance.description}
+                  onChange={(e) =>
+                    setMaintenance({
+                      ...maintenance,
+                      description: e.target.value,
+                    })
+                  }
+                  className="w-full border border-gray-300 rounded-lg p-4 min-h-[100px] focus:ring-2 focus:ring-indigo-500 outline-none"
+                />
+              </div>
+
+              <button
+                onClick={async () => {
+                  if (!maintenance.room || !maintenance.description) {
+                    toast.error("Please fill all fields");
+                    return;
+                  }
+                  try {
+                    const res = await createMaintenanceReport(maintenance);
+                    toast.success("Maintenance report submitted successfully!");
+                    setMaintenance({ room: "", description: "" });
+                  } catch (error) {
+                    console.error(error);
+                    toast.error("Error submitting maintenance report");
+                  }
+                }}
+                className="w-full bg-indigo-600 text-white py-3 rounded-lg font-medium hover:bg-indigo-700 transition"
+              >
+                <div className="flex items-center justify-center space-x-2">
+                  <FaTools />
+                  <span>Submit Report</span>
                 </div>
               </button>
             </div>

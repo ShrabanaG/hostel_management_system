@@ -35,7 +35,7 @@ export const getAllRooms = async () => {
       return;
     }
 
-    const res = await axios.get(`${base_url}/api/rooms/`, {
+    const res = await axios.get(`${base_url}/api/rooms`, {
       headers: {
         Authorization: `Bearer ${residentToken}`,
       },
@@ -47,4 +47,15 @@ export const getAllRooms = async () => {
   } catch (error) {
     console.log("Error message:", error.message);
   }
+};
+
+export const createMaintenanceReport = async (data) => {
+  const res = await axios.post(
+    `${base_url}/api/maintenance/create_maintenance`,
+    data,
+    {
+      headers: { Authorization: `Bearer ${residentToken}` },
+    }
+  );
+  return res.data;
 };
