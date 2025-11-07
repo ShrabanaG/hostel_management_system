@@ -6,10 +6,13 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 import { FaBed, FaCalendarAlt, FaDoorOpen } from "react-icons/fa";
+import { PiBuildingOfficeFill } from "react-icons/pi";
+import { CgLogOut } from "react-icons/cg";
 
 const ResidentEnrollment = () => {
   const { id } = useParams();
   const [allRooms, setAllRooms] = useState([]);
+  const [residentName, setResidentName] = useState("");
   const [loading, setLoading] = useState(false);
   const [booking, setBooking] = useState({
     desireRoom: "",
@@ -109,6 +112,12 @@ const ResidentEnrollment = () => {
     }
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    window.location.href = "/";
+  };
+
   useEffect(() => {
     const fetchAllRooms = async () => {
       try {
@@ -125,6 +134,16 @@ const ResidentEnrollment = () => {
     fetchAllRooms();
   }, []);
 
+  useEffect(() => {
+    const residentUser = JSON.parse(localStorage.getItem("user"));
+
+    if (residentUser && residentUser.role === "resident") {
+      setResidentName(residentUser.name);
+    } else {
+      window.location.href = "/";
+    }
+  }, []);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
       <ToastContainer
@@ -132,14 +151,49 @@ const ResidentEnrollment = () => {
         autoClose={3000}
         hideProgressBar={false}
       />
-      <div className="max-w-7xl flex items-center justify-center">
-        <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-          Dormify
-        </h1>
-        <p className="text-xs text-gray-500">Resident Portal</p>
-      </div>
+      <header className="bg-white shadow-lg border-b border-gray-200 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-4">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                <PiBuildingOfficeFill className="w-7 h-7 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                  Dormify
+                </h1>
+                <p className="text-xs text-gray-500">Resident Portal</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3">
+                <div className="text-right hidden sm:block">
+                  <p className="text-sm font-semibold text-gray-800">
+                    Welcome, {residentName}
+                  </p>
+                </div>
+                <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center shadow-md">
+                  <span className="text-white font-bold text-sm">
+                    {residentName ? residentName.charAt(0).toUpperCase() : "A"}
+                  </span>
+                </div>
+              </div>
+
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-2 bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-2 rounded-lg hover:from-red-600 hover:to-red-700 transition-all shadow-md hover:shadow-lg"
+              >
+                <CgLogOut className="w-4 h-4" />
+                <span className="hidden sm:inline">Logout</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
       {loading ? (
-        <div className="loader" />
+        <div className="flex items-center justify-center min-h-screen bg-black/50">
+          <div className="loader"></div>
+        </div>
       ) : (
         <main className="grid grid-cols-1 lg:grid-cols-2 mx-auto px-6 py-8 gap-6">
           <div className="bg-white rounded-xl shadow-md p-6">
