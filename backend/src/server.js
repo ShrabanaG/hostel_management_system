@@ -6,6 +6,8 @@ import roomRoutes from "./routers/roomRoutes.js";
 import maintenanceRoutes from "./routers/maintenanceRoute.js";
 import residentRoutes from "./routers/residentRoutes.js";
 import authRoutes from "./routers/authRouters.js";
+import paymentRoutes from "./routers/paymentRouter.js";
+import financeRoutes from "./routers/financialRouter.js";
 
 dotenv.config();
 
@@ -27,6 +29,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/residents", residentRoutes);
 app.use("/api/rooms", roomRoutes);
 app.use("/api/maintenance", maintenanceRoutes);
+app.use("/api/payment", paymentRoutes);
+app.use("/api/report", financeRoutes);
 
 app.listen(process.env.PORT, () => {
   console.log("Server is running");

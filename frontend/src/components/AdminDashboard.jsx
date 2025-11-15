@@ -9,6 +9,7 @@ import ResidentsTable from "./ResidentsTable";
 import { PiBuildingOfficeFill } from "react-icons/pi";
 import { CgLogOut } from "react-icons/cg";
 import { FaUsers, FaTools, FaBed } from "react-icons/fa";
+import FinanceDashboard from "./FinanceDashboard";
 
 const AdminDashboard = () => {
   const [adminName, setAdminName] = useState(null);
@@ -168,6 +169,7 @@ const AdminDashboard = () => {
             <RoomLayout rooms={allRooms} />
             <ResidentsTable residents={allResidents} />
           </div>
+          <FinanceDashboard />
         </main>
       )}
     </div>

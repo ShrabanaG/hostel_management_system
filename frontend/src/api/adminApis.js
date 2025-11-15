@@ -11,6 +11,11 @@ export const getAllResidents = async () => {
   return res.data;
 };
 
+export const getFinancialData = async () => {
+  const res = await api.get("/api/report");
+  return res.data;
+};
+
 export const getAllMaintenanceReport = async () => {
   const res = await api.get("/api/maintenance");
   return res.data;
