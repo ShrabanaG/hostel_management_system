@@ -32,8 +32,8 @@ const ResidentsTable = ({ residents }) => {
           </thead>
 
           <tbody className="divide-y divide-gray-200">
-            {residents.length > 0 ? (
-              residents.map((resident) => (
+            {residents?.length > 0 ? (
+              residents?.map((resident) => (
                 <tr
                   key={resident._id}
                   className="hover:bg-gray-50 transition-all"

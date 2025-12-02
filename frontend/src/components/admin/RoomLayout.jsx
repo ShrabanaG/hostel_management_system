@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { createNewRoom } from "../api/adminApis";
+import { createNewRoom } from "../../api/adminApis";
 
 import { FaTimesCircle, FaCheckCircle, FaPlus } from "react-icons/fa";
 
@@ -54,7 +54,7 @@ const RoomLayout = ({ rooms }) => {
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-        {rooms.map((room) => (
+        {rooms?.map((room) => (
           <div
             key={room._id}
             className={`relative flex flex-col items-center justify-center p-4 rounded-xl shadow-md border transition-all hover:scale-105 cursor-pointer ${

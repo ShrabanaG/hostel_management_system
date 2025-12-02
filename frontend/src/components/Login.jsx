@@ -43,7 +43,7 @@ const Login = () => {
 
         if (res.data.user.role === "admin") {
           localStorage.setItem("token", res.data.token);
-          navigate("/admin/dashboard");
+          navigate("/admin");
         } else if (res.data.user.role === "resident") {
           localStorage.setItem("resident_token", res.data.token);
           navigate(`/resident/${res.data.user.id}`);
