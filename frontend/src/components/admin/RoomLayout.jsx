@@ -1,169 +1,141 @@
 import { useState } from "react";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import { createNewRoom } from "../../api/adminApis";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
-import { FaTimesCircle, FaCheckCircle, FaPlus } from "react-icons/fa";
+import { METRO_CITY_GRID } from "../../constants";
+import CreateRoomDrawer from "./CreateRoomDialog";
 
-const RoomLayout = ({ rooms }) => {
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [formData, setFormData] = useState({
-    roomNumber: "",
-    roomType: "",
-    price: "",
-  });
+const backend = import.meta.env.VITE_BACKEND_URL;
 
-  const handleOpenCreateDialog = () => {
-    setShowCreateDialog(true);
+export default function RoomsPage() {
+  const [rooms, setRooms] = useState([]);
+  const [searchCity, setSearchCity] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [openDrawer, setOpenDrawer] = useState(false);
+
+  const navigate = useNavigate();
+
+  console.log("Backend", backend);
+
+  const getImageUrl = (path) => {
+    if (!path) return "";
+    return `${backend.replace(/\/$/, "")}${path}`;
   };
 
-  const handleCreateRoom = async (e) => {
-    e.preventDefault();
+  const fetchRooms = async (city) => {
+    setLoading(true);
+    setErrorMsg("");
+
     try {
-      const res = await createNewRoom(formData);
+      const res = await axios.get(`${backend}/api/rooms/city/${city}`);
 
-      if (res && res.status === 201) {
-        toast.success("Room created successfully");
+      if (res.data.rooms.length === 0) {
+        setErrorMsg(`No rooms found in “${city}”`);
+        setRooms([]);
       } else {
-        toast.info("Room added, but no confirmation received.");
+        setRooms(res.data.rooms);
       }
-
-      setFormData({ roomNumber: "", roomType: "", price: "" });
-      setShowCreateDialog(false);
-    } catch (error) {
-      toast.error("Failed to create room ");
-      console.error("Error creating room:", error);
+    } catch {
+      setErrorMsg("City not found or no results.");
+      setRooms([]);
     }
+
+    setLoading(false);
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-md p-6">
-      <ToastContainer position="top-right" autoClose={2000} theme="colored" />
-
+    <div className="p-6">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-indigo-600">
-          Room Availability
-        </h2>
+        <h1 className="text-3xl font-bold text-gray-800">Available Rooms</h1>
+
         <button
-          onClick={handleOpenCreateDialog}
-          className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg shadow hover:bg-indigo-700 transition-all"
+          onClick={() => setOpenDrawer(true)}
+          className="px-4 py-2 bg-green-600 text-white rounded-lg shadow hover:bg-green-700"
         >
-          <FaPlus />
-          Create Room
+          + Create Room
         </button>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-        {rooms?.map((room) => (
+      <h2 className="text-xl font-bold mb-4">Popular Metro Cities</h2>
+
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 mb-10">
+        {METRO_CITY_GRID.map((city) => (
           <div
-            key={room._id}
-            className={`relative flex flex-col items-center justify-center p-4 rounded-xl shadow-md border transition-all hover:scale-105 cursor-pointer ${
-              room.availability
-                ? "bg-green-50 border-green-300 hover:bg-green-100"
-                : "bg-red-50 border-red-300 cursor-not-allowed"
-            }`}
+            key={city.name}
+            onClick={() => navigate(`/admin/rooms/${city.name}`)}
+            className="
+              relative h-40 rounded-xl cursor-pointer overflow-hidden group 
+              shadow-lg hover:scale-[1.03] transition-transform
+            "
           >
-            <div className="text-center">
-              <h3 className="text-lg font-semibold text-gray-800">
-                {room.roomNumber}
-              </h3>
-              <p className="text-sm text-gray-500">{room.roomType}</p>
-            </div>
-
-            <div className="mt-2">
-              {room.availability ? (
-                <FaCheckCircle className="text-green-600 text-2xl" />
-              ) : (
-                <FaTimesCircle className="text-red-500 text-2xl" />
-              )}
-            </div>
-
-            <div className="mt-3">
-              <p className="text-sm text-gray-700">
-                ₹{room.price.toLocaleString()}
-              </p>
+            <img
+              src={city.image}
+              alt={city.name}
+              className="absolute inset-0 w-full h-full object-cover group-hover:brightness-75 transition-all"
+            />
+            <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+              <h3 className="text-xl font-semibold text-white">{city.name}</h3>
             </div>
           </div>
         ))}
       </div>
 
-      <div className="flex justify-center mt-6 gap-6 text-sm text-gray-600">
-        <div className="flex items-center gap-2">
-          <FaCheckCircle className="text-green-600" /> Available
-        </div>
-        <div className="flex items-center gap-2">
-          <FaTimesCircle className="text-red-500" /> Occupied
-        </div>
+      <div className="flex gap-3 mb-4">
+        <input
+          type="text"
+          placeholder="Search any city…"
+          className="w-full p-3 border rounded-lg"
+          value={searchCity}
+          onChange={(e) => setSearchCity(e.target.value)}
+        />
+        <button
+          onClick={() => fetchRooms(searchCity)}
+          className="px-6 py-2 bg-green-600 text-white rounded-lg"
+        >
+          Search
+        </button>
       </div>
 
-      {showCreateDialog && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-xl shadow-lg w-96">
-            <h3 className="text-lg font-semibold mb-4 text-indigo-600">
-              Create New Room
-            </h3>
-            <form onSubmit={handleCreateRoom} className="space-y-3">
-              <div>
-                <label className="text-sm text-gray-600">Room Number</label>
-                <input
-                  type="text"
-                  value={formData.roomNumber}
-                  onChange={(e) =>
-                    setFormData({ ...formData, roomNumber: e.target.value })
-                  }
-                  className="w-full border p-2 rounded-md"
-                  required
-                />
-              </div>
-              <div>
-                <label className="text-sm text-gray-600">Room Type</label>
-                <select
-                  value={formData.roomType}
-                  onChange={(e) =>
-                    setFormData({ ...formData, roomType: e.target.value })
-                  }
-                  className="w-full border p-2 rounded-md"
-                  required
-                >
-                  <option value="">Select type</option>
-                  <option value="Single">Single</option>
-                  <option value="Double">Double</option>
-                  <option value="Triple">Triple</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-sm text-gray-600">Price (₹)</label>
-                <input
-                  type="number"
-                  value={formData.price}
-                  onChange={(e) =>
-                    setFormData({ ...formData, price: e.target.value })
-                  }
-                  className="w-full border p-2 rounded-md"
-                  required
-                />
-              </div>
-              <div className="flex justify-end gap-3 mt-4">
-                <button
-                  type="button"
-                  onClick={() => setShowCreateDialog(false)}
-                  className="px-4 py-2 rounded-lg border text-gray-600 hover:bg-gray-100"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700"
-                >
-                  Create
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+      {errorMsg && (
+        <p className="text-red-600 text-lg mb-4 font-medium">{errorMsg}</p>
       )}
+
+      {loading && (
+        <p className="text-gray-600 text-lg">Loading available rooms…</p>
+      )}
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+        {rooms.map((room) => (
+          <div key={room._id} className="bg-white rounded-xl shadow p-4">
+            <img
+              src={getImageUrl(room.images?.[0])}
+              className="w-full h-40 rounded-lg object-cover"
+              alt="Room"
+            />
+
+            <h3 className="text-xl font-semibold mt-3">{room.roomType}</h3>
+            <p className="text-gray-600">{room.address}</p>
+
+            <p className="mt-2 font-bold text-green-600">
+              ₹{room.price} / month
+            </p>
+
+            <p className="text-sm text-gray-500">
+              Available Beds: {room.availableBeds}
+            </p>
+
+            <button className="mt-4 w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700">
+              Book Now
+            </button>
+          </div>
+        ))}
+      </div>
+      <CreateRoomDrawer
+        open={openDrawer}
+        onClose={() => setOpenDrawer(false)}
+        onSuccess={() => fetchRooms(searchCity)}
+      />
     </div>
   );
-};
-
-export default RoomLayout;
+}

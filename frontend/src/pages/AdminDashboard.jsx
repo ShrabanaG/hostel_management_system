@@ -44,7 +44,7 @@ export default function AdminDashboard() {
 
   return (
     <DashboardHome
-      allRooms={rooms}
+      allRooms={rooms.rooms}
       allResidents={residents}
       maintenanceCount={maintenance.length}
     />

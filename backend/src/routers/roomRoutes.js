@@ -1,20 +1,40 @@
 import express from "express";
+import multer from "multer";
 import {
-  getAllRooms,
-  allocateRoom,
-  freeEachRoom,
   createRoom,
+  uploadRoomImages,
+  bookRoom,
+  getRoomsByCity,
+  getAllRooms,
+  getRoomById,
+  updateRoom,
+  deleteRoom,
 } from "../controllers/roomControllers.js";
 import { authMiddleware } from "../middleware/authMiddleware.js";
 import { roleMiddleware } from "../middleware/roleMiddleware.js";
 
 const router = express.Router();
 
-router.use(authMiddleware);
+const upload = multer({ dest: "src/uploads/" });
 
+router.post("/", authMiddleware, roleMiddleware(["admin"]), createRoom);
+
+router.post(
+  "/:roomId/images",
+  authMiddleware,
+  roleMiddleware(["admin"]),
+  upload.array("images", 5),
+  uploadRoomImages
+);
+
+router.patch("/:id", authMiddleware, roleMiddleware(["admin"]), updateRoom);
+
+router.delete("/:id", authMiddleware, roleMiddleware(["admin"]), deleteRoom);
+
+router.post("/book", authMiddleware, bookRoom);
+
+router.get("/city/:city", getRoomsByCity);
 router.get("/", getAllRooms);
-router.post("/add_room", roleMiddleware(["admin"]), createRoom);
-router.post("/allocate", allocateRoom);
-router.post("/free/:id", roleMiddleware(["admin"]), freeEachRoom);
+router.get("/:id", getRoomById);
 
 export default router;

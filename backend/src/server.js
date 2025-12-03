@@ -1,6 +1,9 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
+
 import connectToDB from "./config/db.js";
 import roomRoutes from "./routers/roomRoutes.js";
 import maintenanceRoutes from "./routers/maintenanceRoute.js";
@@ -13,9 +16,13 @@ dotenv.config();
 
 const app = express();
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 connectToDB();
 
 app.use(express.json());
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.use(
   cors({
@@ -25,7 +32,6 @@ app.use(
 );
 
 app.use("/api/auth", authRoutes);
-
 app.use("/api/residents", residentRoutes);
 app.use("/api/rooms", roomRoutes);
 app.use("/api/maintenance", maintenanceRoutes);
