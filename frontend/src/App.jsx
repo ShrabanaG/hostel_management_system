@@ -13,6 +13,8 @@ import FinanceDashboard from "./components/admin/FinanceDashboard";
 import ResidentsTable from "./components/admin/ResidentsTable";
 import CityRoomsPage from "./components/admin/CityRoomPage";
 import RoomDetailsPage from "./components/admin/RoomDetailsPage";
+import AdminMaintenanceTable from "./components/admin/MaintenanceTable";
+import MyBookings from "./components/resident/MyBookings";
 
 const App = () => {
   return (
@@ -24,10 +26,12 @@ const App = () => {
           <Route path="rooms" element={<RoomLayout />} />
           <Route path="residents" element={<ResidentsTable />} />
           <Route path="finance" element={<FinanceDashboard />} />
+          <Route path="maintenance" element={<AdminMaintenanceTable />} />
           <Route path="rooms/:city" element={<CityRoomsPage />} />
           <Route path="rooms/details/:roomId" element={<RoomDetailsPage />} />
         </Route>
         <Route path="/resident/:id" element={<ResidentPage />} />
+        <Route path="/resident/:id/bookings" element={<MyBookings />} />
       </Routes>
     </Router>
   );

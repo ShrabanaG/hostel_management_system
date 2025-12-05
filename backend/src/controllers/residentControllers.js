@@ -1,11 +1,11 @@
 import Resident from "../models/residentModel.js";
+import User from "../models/userModel.js";
 
 //get all residents
 export const getAllResidents = async (req, res) => {
   try {
-    const allResidents = await Resident.find()
-      .populate("user", "name email")
-      .populate("desireRoom", "roomNumber roomType");
+    const allResidents = await User.find({ role: "resident" });
+
     res.status(200).json(allResidents);
   } catch (error) {
     res.status(500).json({ message: "No resident is found" });

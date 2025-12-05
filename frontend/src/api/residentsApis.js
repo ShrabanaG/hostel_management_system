@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const base_url = import.meta.env.VITE_BASE_URL;
+const base_url = import.meta.env.VITE_BACKEND_URL;
 const residentToken = localStorage.getItem("resident_token");
 
 export const allocateRoom = async (data, id) => {
@@ -8,8 +8,8 @@ export const allocateRoom = async (data, id) => {
     const res = await axios.post(
       `${base_url}/api/rooms/allocate`,
       {
-        userId: id,
-        desireRoom: data.desireRoom,
+        residentId: id.trim(),
+        roomId: data.desireRoom.trim(),
         checkInDate: data.checkInDate,
         checkOutDate: data.checkOutDate,
       },
@@ -58,4 +58,20 @@ export const createMaintenanceReport = async (data) => {
     }
   );
   return res.data;
+};
+
+export const getMyBookings = async () => {
+  try {
+    const token = localStorage.getItem("resident_token");
+
+    const res = await axios.get(`${base_url}/api/rooms/my-bookings`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return res.data.bookings;
+  } catch (error) {
+    console.log("Error fetching bookings", error);
+  }
 };

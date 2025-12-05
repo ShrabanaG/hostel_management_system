@@ -12,7 +12,7 @@ export const getFinancialReport = async (req, res) => {
     });
     const totalRooms = await Room.countDocuments();
     const occupiedRooms = await Room.countDocuments({
-      resident: { $exists: true, $ne: [] },
+      bookings: { $exists: true, $ne: [] },
     });
 
     const occupancyRate =

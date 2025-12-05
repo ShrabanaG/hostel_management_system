@@ -1,5 +1,26 @@
 import mongoose from "mongoose";
 
+const bookingSchema = new mongoose.Schema({
+  resident: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
+  checkInDate: {
+    type: Date,
+    required: true,
+  },
+  checkOutDate: {
+    type: Date,
+    required: true,
+  },
+  paymentStatus: {
+    type: String,
+    enum: ["pending", "paid", "failed"],
+    default: "pending",
+  },
+});
+
 const roomSchema = new mongoose.Schema({
   roomNumber: {
     type: String,
@@ -84,7 +105,7 @@ const roomSchema = new mongoose.Schema({
       ref: "Resident",
     },
   ],
-
+  bookings: [bookingSchema],
   images: [String],
 });
 

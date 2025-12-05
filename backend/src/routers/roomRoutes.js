@@ -9,6 +9,8 @@ import {
   getRoomById,
   updateRoom,
   deleteRoom,
+  allocateRoom,
+  getResidentBookings,
 } from "../controllers/roomControllers.js";
 import { authMiddleware } from "../middleware/authMiddleware.js";
 import { roleMiddleware } from "../middleware/roleMiddleware.js";
@@ -27,14 +29,28 @@ router.post(
   uploadRoomImages
 );
 
-router.patch("/:id", authMiddleware, roleMiddleware(["admin"]), updateRoom);
+router.post(
+  "/allocate",
+  authMiddleware,
+  roleMiddleware(["resident"]),
+  allocateRoom
+);
 
-router.delete("/:id", authMiddleware, roleMiddleware(["admin"]), deleteRoom);
-
-router.post("/book", authMiddleware, bookRoom);
+// MUST COME BEFORE :id
+router.get(
+  "/my-bookings",
+  authMiddleware,
+  roleMiddleware(["resident"]),
+  getResidentBookings
+);
 
 router.get("/city/:city", getRoomsByCity);
 router.get("/", getAllRooms);
+
 router.get("/:id", getRoomById);
+
+router.patch("/:id", authMiddleware, roleMiddleware(["admin"]), updateRoom);
+
+router.delete("/:id", authMiddleware, roleMiddleware(["admin"]), deleteRoom);
 
 export default router;

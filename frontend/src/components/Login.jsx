@@ -28,7 +28,7 @@ const Login = () => {
     useState(false);
   const navigate = useNavigate();
 
-  const base_url = import.meta.env.VITE_BASE_URL;
+  const base_url = import.meta.env.VITE_BACKEND_URL;
 
   const handleLogIn = async () => {
     if (!existingUser.email || !existingUser.password || !existingUser.role) {

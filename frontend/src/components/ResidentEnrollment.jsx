@@ -1,76 +1,67 @@
-import React, { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   getAllRooms,
   allocateRoom,
   createMaintenanceReport,
 } from "../api/residentsApis";
+
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { FaBed, FaCalendarAlt, FaDoorOpen, FaTools } from "react-icons/fa";
+
+import {
+  FaBed,
+  FaCalendarAlt,
+  FaTools,
+  FaHome,
+  FaCheckCircle,
+} from "react-icons/fa";
+
 import { PiBuildingOfficeFill } from "react-icons/pi";
 import { CgLogOut } from "react-icons/cg";
 
-const base_url = import.meta.env.VITE_BASE_URL || "";
+const backend = import.meta.env.VITE_BACKEND_URL;
 
-// Small presentational components
-const Header = ({ residentName, onLogout }) => (
-  <header className="bg-white shadow-lg border-b border-gray-200 sticky top-0 z-50">
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="flex justify-between items-center py-4">
+const Header = ({ residentName, onLogout, id }) => {
+  const navigate = useNavigate();
+  return (
+    <header className="bg-white shadow-md border-b sticky top-0 z-40">
+      <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-            <PiBuildingOfficeFill className="w-7 h-7 text-white" />
+          <div className="w-12 h-12 bg-green-600 rounded-xl flex items-center justify-center shadow-md">
+            <PiBuildingOfficeFill className="text-white text-xl" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-              Dormify
-            </h1>
+            <h1 className="text-2xl font-bold text-green-700">Dormify</h1>
             <p className="text-xs text-gray-500">Resident Portal</p>
           </div>
         </div>
+
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-3">
-            <div className="text-right hidden sm:block">
-              <p className="text-sm font-semibold text-gray-800">
-                Welcome, {residentName}
-              </p>
-            </div>
-            <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center shadow-md">
-              <span className="text-white font-bold text-sm">
-                {residentName ? residentName.charAt(0).toUpperCase() : "A"}
-              </span>
-            </div>
-          </div>
+          <button
+            onClick={() => navigate(`/resident/${id}/bookings`)}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg shadow hover:bg-green-700 transition"
+          >
+            My Bookings
+          </button>
+          <span className="font-semibold text-gray-700 hidden sm:block">
+            Hi, {residentName}
+          </span>
+
           <button
             onClick={onLogout}
-            className="flex items-center gap-2 bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-2 rounded-lg hover:from-red-600 hover:to-red-700 transition-all shadow-md hover:shadow-lg"
+            className="flex items-center gap-2 bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition shadow"
           >
-            <CgLogOut className="w-4 h-4" />
-            <span className="hidden sm:inline">Logout</span>
+            <CgLogOut /> Logout
           </button>
         </div>
       </div>
-    </div>
-  </header>
-);
-
-const RoomCard = ({ room }) => (
-  <div className="relative flex flex-col items-center justify-center p-4 rounded-xl shadow-md border bg-green-50 border-green-300 hover:bg-green-100">
-    <div className="text-center">
-      <h3 className="text-lg font-semibold text-gray-800">{room.roomNumber}</h3>
-      <p className="text-sm text-gray-500">{room.roomType}</p>
-    </div>
-    <div className="mt-3">
-      <p className="text-sm text-gray-700">
-        ₹{Number(room.price).toLocaleString()}
-      </p>
-    </div>
-  </div>
-);
+    </header>
+  );
+};
 
 export default function ResidentEnrollment() {
-  const { id } = useParams(); // resident id from route (if required)
+  const { id } = useParams();
   const navigate = useNavigate();
 
   const [allRooms, setAllRooms] = useState([]);
@@ -83,29 +74,28 @@ export default function ResidentEnrollment() {
     checkInDate: "",
     checkOutDate: "",
   });
-  const [maintenance, setMaintenance] = useState({ room: "", description: "" });
+
+  const [maintenance, setMaintenance] = useState({
+    room: "",
+    description: "",
+  });
 
   const today = new Date().toISOString().split("T")[0];
 
-  // Load Razorpay SDK dynamically once
-  useEffect(() => {
-    if (window.Razorpay) return; // already loaded
-    const script = document.createElement("script");
-    script.src = "https://checkout.razorpay.com/v1/checkout.js";
-    script.async = true;
-    document.body.appendChild(script);
-    return () => document.body.removeChild(script);
-  }, []);
+  const availableRooms = allRooms.filter((room) => room.availableBeds > 0);
+  const isAnyRoomAvailable = availableRooms.length > 0;
 
-  // Fetch rooms
+  const residentHasBooking = allRooms.some((room) =>
+    room.residents.includes(id)
+  );
+
   const fetchAllRooms = useCallback(async () => {
     try {
       setLoading(true);
-      const rooms = await getAllRooms();
-      setAllRooms(rooms || []);
+      const res = await getAllRooms();
+      setAllRooms(res.rooms || []);
     } catch (err) {
-      console.error(err);
-      toast.error("Failed to fetch rooms");
+      toast.error("Failed to load rooms");
     } finally {
       setLoading(false);
     }
@@ -115,26 +105,32 @@ export default function ResidentEnrollment() {
     fetchAllRooms();
   }, [fetchAllRooms]);
 
-  // Resident auth & name
+  // ----------------------------
+  // Load Resident Data
+  // ----------------------------
   useEffect(() => {
-    const residentUser = JSON.parse(localStorage.getItem("user"));
-    if (residentUser && residentUser.role === "resident") {
-      setResidentName(residentUser.name);
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (user && user.role === "resident") {
+      setResidentName(user.name);
     } else {
       navigate("/");
     }
   }, [navigate]);
 
+  // ----------------------------
+  // Logout
+  // ----------------------------
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    localStorage.removeItem("resident_token");
+    localStorage.clear();
     navigate("/");
   };
 
+  // ----------------------------
+  // Booking Logic
+  // ----------------------------
   const validateBooking = () => {
     if (!booking.desireRoom || !booking.checkInDate || !booking.checkOutDate) {
-      toast.error("Please fill all fields");
+      toast.error("Please complete all fields");
       return false;
     }
     if (new Date(booking.checkOutDate) <= new Date(booking.checkInDate)) {
@@ -146,67 +142,77 @@ export default function ResidentEnrollment() {
 
   const handleBookRoom = async () => {
     if (!validateBooking()) return;
+    console.log(booking);
+
     try {
       setProcessing(true);
 
-      // 1) allocate room on backend
       const res = await allocateRoom(booking, id);
-      // Expect res to contain the room object including price at res.data.room.price
+
       if (!res || res.status !== 200) {
-        toast.error(res?.message || "Failed to allocate room");
+        toast.error("Room booking failed");
         setProcessing(false);
         return;
       }
 
-      toast.success("Room reserved — starting payment...");
+      const roomPrice = res.data.room.price;
 
-      // 2) create order on backend (Razorpay order)
       const token =
         localStorage.getItem("resident_token") || localStorage.getItem("token");
-      const orderResp = await fetch(`${base_url}/api/payment/create-order`, {
+
+      const orderResp = await fetch(`${backend}/api/payment/create-order`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: token ? `Bearer ${token}` : "",
         },
-        body: JSON.stringify({ amount: res.data.room.price, resident: id }),
+        body: JSON.stringify({
+          amount: roomPrice,
+          resident: id,
+          roomId: booking.desireRoom,
+        }),
       }).then((r) => r.json());
 
-      if (!orderResp || !orderResp.success) {
-        throw new Error(orderResp?.message || "Could not create payment order");
+      if (!orderResp.success) {
+        toast.error("Failed to create payment order");
+        setProcessing(false);
+        return;
       }
 
-      // 3) open Razorpay checkout
       const options = {
         key: orderResp.key,
         amount: orderResp.amount * 100,
         currency: "INR",
-        name: "Dormify Hostel",
+        name: "Dormify Hostel Booking",
         description: "Room Booking Payment",
         order_id: orderResp.orderId,
         handler: async function (response) {
           try {
             const verifyResp = await fetch(
-              `${base_url}/api/payment/verify-payment`,
+              `${backend}/api/payment/verify-payment`,
               {
                 method: "POST",
                 headers: {
                   "Content-Type": "application/json",
-                  Authorization: token ? `Bearer ${token}` : "",
+                  Authorization: `Bearer ${token}`,
                 },
-                body: JSON.stringify(response),
+                body: JSON.stringify({
+                  ...response,
+                  resident: id,
+                  roomId: booking.desireRoom,
+                }),
               }
             ).then((r) => r.json());
 
-            if (verifyResp?.success) {
-              toast.success("Payment successful — booking complete");
-              setBooking({ desireRoom: "", checkInDate: "", checkOutDate: "" });
-
-              navigate("/resident/:id");
+            if (verifyResp.success) {
+              toast.success("Payment successful 🎉 Your room is booked!");
+              setBooking({
+                desireRoom: "",
+                checkInDate: "",
+                checkOutDate: "",
+              });
             } else {
-              toast.error(
-                "Payment verification failed — please contact support"
-              );
+              toast.error("Payment verification failed");
             }
           } catch (err) {
             console.error(err);
@@ -215,187 +221,152 @@ export default function ResidentEnrollment() {
             setProcessing(false);
           }
         },
-        modal: {
-          ondismiss: function () {
-            toast.info("Payment cancelled");
-            setProcessing(false);
-          },
-        },
         prefill: {
           name: residentName,
-          email: JSON.parse(localStorage.getItem("user"))?.email || "",
-          contact: JSON.parse(localStorage.getItem("user"))?.contact || "",
+          email: JSON.parse(localStorage.getItem("user")).email,
         },
-        method: {
-          upi: false,
-          wallet: true,
-          card: true,
-          netbanking: true,
-        },
-        theme: { color: "#6366F1" },
+        theme: { color: "#16a34a" }, // green-600
       };
 
       const rzp = new window.Razorpay(options);
       rzp.open();
     } catch (err) {
       console.error(err);
-      toast.error(err?.message || "Booking/payment error");
+      toast.error("Booking failed");
       setProcessing(false);
     }
   };
 
   const handleSubmitMaintenance = async () => {
-    if (!maintenance.room || !maintenance.description) {
-      toast.error("Please fill all fields");
-      return;
-    }
+    if (!maintenance.room || !maintenance.description)
+      return toast.error("Please fill both fields");
+
     try {
-      setProcessing(true);
       await createMaintenanceReport(maintenance);
-      toast.success("Maintenance report submitted");
+      toast.success("Maintenance report submitted successfully");
       setMaintenance({ room: "", description: "" });
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to submit maintenance");
-    } finally {
-      setProcessing(false);
+    } catch {
+      toast.error("Failed to submit report");
     }
   };
 
+  useEffect(() => {
+    if (!window.Razorpay) {
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.async = true;
+      document.body.appendChild(script);
+    }
+  }, []);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-      />
-      <Header residentName={residentName} onLogout={handleLogout} />
+    <div className="min-h-screen bg-green-50">
+      <ToastContainer position="top-right" autoClose={3000} />
+      <Header residentName={residentName} onLogout={handleLogout} id={id} />
 
       {loading ? (
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="loader" />
+        <div className="flex justify-center items-center min-h-[70vh]">
+          <div className="loader"></div>
         </div>
       ) : (
-        <main className="grid grid-cols-1 lg:grid-cols-3 mx-auto px-6 py-8 gap-6 max-w-7xl">
-          {/* Room Availability */}
-          <section className="bg-white rounded-xl shadow-md p-6">
-            <h2 className="text-2xl font-bold text-indigo-600">
-              Room Availability
+        <main className="max-w-7xl mx-auto p-6 space-y-12">
+          <section className="bg-white border border-green-200 rounded-2xl p-8 shadow-lg">
+            <h2 className="text-3xl font-bold text-green-700 flex items-center gap-3">
+              <FaHome className="text-green-600" /> Available Rooms
             </h2>
-            <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-              {allRooms
-                .filter((r) => r.availability)
-                .map((room) => (
-                  <RoomCard key={room._id} room={room} />
+            <p className="text-gray-500">Pick a room that suits you</p>
+
+            {residentHasBooking && (
+              <div className="mt-6 bg-green-100 border border-green-300 p-6 rounded-xl">
+                <h3 className="text-xl font-bold text-green-700">
+                  You already booked a room
+                </h3>
+                <p className="text-gray-700 mt-1">
+                  You can view your booking details below.
+                </p>
+
+                <button
+                  onClick={() => navigate(`/resident/${id}/bookings`)}
+                  className="mt-4 px-5 py-3 bg-green-600 text-white rounded-lg shadow hover:bg-green-700"
+                >
+                  View My Bookings
+                </button>
+              </div>
+            )}
+
+            {!residentHasBooking && !isAnyRoomAvailable && (
+              <div className="mt-6 bg-yellow-100 border border-yellow-300 p-6 rounded-xl">
+                <h3 className="text-xl font-bold text-yellow-700">
+                  No rooms are available
+                </h3>
+                <p className="text-gray-700">
+                  All rooms are currently full. Please check again later.
+                </p>
+              </div>
+            )}
+
+            {/* CASE 3: Rooms are available (default grid) */}
+            {!residentHasBooking && isAnyRoomAvailable && (
+              <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-8">
+                {availableRooms.map((room) => (
+                  <div
+                    key={room._id}
+                    className="group bg-white rounded-2xl border border-green-300 overflow-hidden shadow hover:shadow-xl transition cursor-pointer"
+                  >
+                    {/* Image */}
+                    <div className="h-44 bg-gray-100 overflow-hidden relative">
+                      <img
+                        src={`${backend}${room.images?.[0]}`}
+                        className="w-full h-full object-cover group-hover:scale-105 transition"
+                      />
+                      <span className="absolute top-2 right-2 px-3 py-1 text-xs font-semibold bg-green-600 text-white rounded-full shadow">
+                        {room.availableBeds} beds
+                      </span>
+                    </div>
+
+                    {/* Content */}
+                    <div className="p-4 space-y-2">
+                      <h3 className="text-xl font-bold text-gray-800">
+                        {room.roomNumber}
+                      </h3>
+
+                      <p className="text-sm text-gray-600">
+                        {room.roomType} · {room.city}
+                      </p>
+
+                      <p className="text-gray-500 text-sm">{room.address}</p>
+
+                      <p className="text-2xl font-extrabold text-green-600">
+                        ₹{room.price}
+                        <span className="text-sm font-normal text-gray-500 ml-1">
+                          / month
+                        </span>
+                      </p>
+                    </div>
+                  </div>
                 ))}
-            </div>
+              </div>
+            )}
           </section>
 
-          {/* Booking Form */}
-          <section className="bg-white rounded-xl shadow-md p-6">
-            <h2 className="text-2xl font-bold text-indigo-600 flex items-center gap-2">
-              Book Your Room
+          <section className="bg-white border border-green-200 rounded-2xl p-8 shadow-lg">
+            <h2 className="text-3xl font-bold text-green-700 flex items-center gap-3">
+              <FaCalendarAlt className="text-green-600" /> Book a Room
             </h2>
-            <div className="mt-4">
-              <label className="block text-sm font-bold text-gray-700 mb-2">
-                Select Room*
-              </label>
-              <div className="relative">
-                <FaDoorOpen className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <p className="text-gray-500">Provide details to confirm a room</p>
+
+            <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
+              {/* Room Selection */}
+              <div>
+                <label className="font-semibold">Select Room *</label>
                 <select
+                  className="w-full mt-2 p-3 border rounded-lg focus:ring-2 focus:ring-green-600"
                   value={booking.desireRoom}
                   onChange={(e) =>
                     setBooking({ ...booking, desireRoom: e.target.value })
                   }
-                  className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition"
                 >
-                  <option value="">Select a Room</option>
-                  {allRooms
-                    .filter((room) => room.availability)
-                    .map((room) => (
-                      <option key={room._id} value={room._id}>
-                        {room.roomNumber} — ₹
-                        {Number(room.price).toLocaleString()}
-                      </option>
-                    ))}
-                </select>
-              </div>
-
-              <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">
-                    Check-In Date*
-                  </label>
-                  <div className="relative">
-                    <FaCalendarAlt className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <input
-                      type="date"
-                      min={today}
-                      value={booking.checkInDate}
-                      onChange={(e) =>
-                        setBooking({ ...booking, checkInDate: e.target.value })
-                      }
-                      className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">
-                    Check-Out Date*
-                  </label>
-                  <div className="relative">
-                    <FaCalendarAlt className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <input
-                      type="date"
-                      min={booking.checkInDate || today}
-                      value={booking.checkOutDate}
-                      onChange={(e) =>
-                        setBooking({ ...booking, checkOutDate: e.target.value })
-                      }
-                      className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <button
-                onClick={handleBookRoom}
-                disabled={processing}
-                className={`w-full mt-6 bg-indigo-600 text-white py-3 rounded-lg font-medium hover:bg-indigo-700 transition ${
-                  processing ? "opacity-60 cursor-not-allowed" : ""
-                }`}
-              >
-                <div className="flex items-center justify-center space-x-2">
-                  <FaBed />
-                  <span>
-                    {processing ? "Processing..." : "Book Room & Pay"}
-                  </span>
-                </div>
-              </button>
-            </div>
-          </section>
-
-          {/* Maintenance */}
-          <section className="bg-white rounded-xl shadow-md p-6">
-            <h2 className="text-2xl font-bold text-indigo-600 flex items-center gap-2">
-              <FaTools /> Report Maintenance Issue
-            </h2>
-
-            <div className="mt-4">
-              <label className="block text-sm font-bold text-gray-700 mb-2">
-                Select Room*
-              </label>
-              <div className="relative">
-                <FaDoorOpen className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <select
-                  value={maintenance.room}
-                  onChange={(e) =>
-                    setMaintenance({ ...maintenance, room: e.target.value })
-                  }
-                  className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition"
-                >
-                  <option value="">Select a Room</option>
+                  <option value="">Choose room</option>
                   {allRooms.map((room) => (
                     <option key={room._id} value={room._id}>
                       {room.roomNumber}
@@ -404,11 +375,73 @@ export default function ResidentEnrollment() {
                 </select>
               </div>
 
-              <label className="block text-sm font-bold text-gray-700 mb-2 mt-4">
-                Description*
-              </label>
+              {/* Check-in */}
+              <div>
+                <label className="font-semibold">Check-in *</label>
+                <input
+                  type="date"
+                  min={today}
+                  className="w-full mt-2 p-3 border rounded-lg focus:ring-2 focus:ring-green-600"
+                  value={booking.checkInDate}
+                  onChange={(e) =>
+                    setBooking({ ...booking, checkInDate: e.target.value })
+                  }
+                />
+              </div>
+
+              {/* Check-out */}
+              <div>
+                <label className="font-semibold">Check-out *</label>
+                <input
+                  type="date"
+                  min={booking.checkInDate || today}
+                  className="w-full mt-2 p-3 border rounded-lg focus:ring-2 focus:ring-green-600"
+                  value={booking.checkOutDate}
+                  onChange={(e) =>
+                    setBooking({ ...booking, checkOutDate: e.target.value })
+                  }
+                />
+              </div>
+            </div>
+
+            <button
+              onClick={handleBookRoom}
+              disabled={processing}
+              className="w-full mt-8 py-4 bg-green-600 text-white rounded-xl text-lg 
+           hover:bg-green-700 transition disabled:opacity-50"
+            >
+              {processing ? "Processing..." : "Confirm Booking & Pay"}
+            </button>
+          </section>
+
+          {/* ------------------------- */}
+          {/* MAINTENANCE SECTION */}
+          {/* ------------------------- */}
+          <section className="bg-white border border-green-200 rounded-2xl p-8 shadow-lg">
+            <h2 className="text-3xl font-bold text-green-700 flex items-center gap-3">
+              <FaTools className="text-green-600" /> Maintenance Request
+            </h2>
+            <p className="text-gray-500">Report an issue in your room</p>
+
+            <div className="mt-6 space-y-4">
+              <select
+                value={maintenance.room}
+                onChange={(e) =>
+                  setMaintenance({ ...maintenance, room: e.target.value })
+                }
+                className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-600"
+              >
+                <option value="">Select Room</option>
+                {allRooms.map((room) => (
+                  <option key={room._id} value={room._id}>
+                    {room.roomNumber}
+                  </option>
+                ))}
+              </select>
+
               <textarea
-                placeholder="Describe the issue (e.g., water leakage, broken light)..."
+                className="w-full p-3 border rounded-lg min-h-[120px] focus:ring-2 focus:ring-green-600"
+                placeholder="Describe the issue..."
                 value={maintenance.description}
                 onChange={(e) =>
                   setMaintenance({
@@ -416,20 +449,13 @@ export default function ResidentEnrollment() {
                     description: e.target.value,
                   })
                 }
-                className="w-full border border-gray-300 rounded-lg p-4 min-h-[100px] focus:ring-2 focus:ring-indigo-500 outline-none"
               />
 
               <button
                 onClick={handleSubmitMaintenance}
-                disabled={processing}
-                className={`w-full mt-4 bg-indigo-600 text-white py-3 rounded-lg font-medium hover:bg-indigo-700 transition ${
-                  processing ? "opacity-60 cursor-not-allowed" : ""
-                }`}
+                className="w-full py-3 bg-green-600 text-white rounded-xl shadow hover:bg-green-700 transition"
               >
-                <div className="flex items-center justify-center space-x-2">
-                  <FaTools />
-                  <span>Submit Report</span>
-                </div>
+                Submit Maintenance Report
               </button>
             </div>
           </section>
